@@ -1,0 +1,206 @@
+
+import { useLayoutEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
+
+import type { PatternRow } from "../types/PatternRow";
+import {
+  createRow,
+  updateRow,
+  removeRow,
+} from "../utils/roundNumbering";
+import { validatePatternRow } from "../utils/validator";
+
+interface PatternEditorProps {
+  rows: PatternRow[];
+  onChange: (rows: PatternRow[]) => void;
+}
+
+interface FocusTarget {
+  rowId: string;
+  position: number;
+}
+
+export default function PatternEditor({
+  rows,
+  onChange,
+}: PatternEditorProps) {
+  const inputRefs = useRef<Map<string, HTMLInputElement>>(
+    new Map()
+  );
+
+  const [focusTarget, setFocusTarget] =
+    useState<FocusTarget | null>(null);
+
+  useLayoutEffect(() => {
+    if (!focusTarget) return;
+
+    const input = inputRefs.current.get(focusTarget.rowId);
+
+    if (input) {
+      input.focus();
+      input.setSelectionRange(
+        focusTarget.position,
+        focusTarget.position
+      );
+    }
+
+    setFocusTarget(null);
+  }, [rows, focusTarget]);
+
+  const handleEnter = (
+    row: PatternRow,
+    event: KeyboardEvent<HTMLInputElement>
+  ) => {
+    event.preventDefault();
+
+    const input = event.currentTarget;
+    const start = input.selectionStart ?? row.content.length;
+    const end = input.selectionEnd ?? start;
+
+    const beforeCursor = row.content.slice(0, start);
+    const afterCursor = row.content.slice(end);
+
+    const newRow = createRow(afterCursor);
+    const index = rows.findIndex((item) => item.id === row.id);
+
+    const updatedRows = [...rows];
+
+    updatedRows[index] = {
+      ...row,
+      content: beforeCursor,
+    };
+
+    updatedRows.splice(index + 1, 0, newRow);
+
+    onChange(updatedRows);
+
+    setFocusTarget({
+      rowId: newRow.id,
+      position: 0,
+    });
+  };
+
+  const handleBackspace = (
+    row: PatternRow,
+    event: KeyboardEvent<HTMLInputElement>
+  ) => {
+    const input = event.currentTarget;
+
+    if (
+      input.selectionStart !== 0 ||
+      input.selectionEnd !== 0
+    ) {
+      return;
+    }
+
+    const index = rows.findIndex((item) => item.id === row.id);
+
+    if (index <= 0) return;
+
+    event.preventDefault();
+
+    const previousRow = rows[index - 1];
+
+    const updatedRows = updateRow(
+      rows,
+      previousRow.id,
+      previousRow.content + row.content
+    );
+
+    onChange(removeRow(updatedRows, row.id));
+
+    setFocusTarget({
+      rowId: previousRow.id,
+      position: previousRow.content.length,
+    });
+  };
+
+  const handleKeyDown = (
+    row: PatternRow,
+    event: KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.nativeEvent.isComposing) return;
+
+    if (event.key === "Enter") {
+      handleEnter(row, event);
+    } else if (event.key === "Backspace") {
+      handleBackspace(row, event);
+    }
+  };
+
+  return (
+    <div className="console-editor">
+      <div className="pattern-rows">
+        {rows.map((row, index) => {
+          const validation = validatePatternRow(row.content);
+          const isEmpty = !row.content.trim();
+
+          return (
+            <div
+              className={`pattern-row ${
+                !validation.valid ? "pattern-row-error" : ""
+              }`}
+              key={row.id}
+            >
+              <span className="pattern-round">
+                R{index + 1}:
+              </span>
+
+              <div className="pattern-input-wrapper">
+                <input
+                  ref={(element) => {
+                    if (element) {
+                      inputRefs.current.set(row.id, element);
+                    } else {
+                      inputRefs.current.delete(row.id);
+                    }
+                  }}
+                  type="text"
+                  value={row.content}
+                  onChange={(event) =>
+                    onChange(
+                      updateRow(rows, row.id, event.target.value)
+                    )
+                  }
+                  onKeyDown={(event) =>
+                    handleKeyDown(row, event)
+                  }
+                  placeholder={
+                    index === 0
+                      ? "6 sc in mr"
+                      : "Enter stitches..."
+                  }
+                  spellCheck={false}
+                  aria-label={`Round ${index + 1}`}
+                  aria-invalid={!validation.valid}
+                  title={
+                    validation.valid
+                      ? ""
+                      : validation.message
+                  }
+                />
+
+                {!isEmpty && (
+                  <span className="pattern-validation-icon">
+                    {validation.valid ? (
+                      <CheckCircle2 size={15} />
+                    ) : (
+                      <AlertCircle size={15} />
+                    )}
+                  </span>
+                )}
+              </div>
+
+              {!validation.valid && (
+                <span className="pattern-error-message">
+                  {validation.message}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

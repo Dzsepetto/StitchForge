@@ -1,0 +1,351 @@
+
+/* ============================= */
+/* Console Panel                 */
+/* ============================= */
+
+.console-panel {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background-color: #17191f;
+  border-right: 1px solid #343842;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================= */
+/* Console Header                */
+/* ============================= */
+
+.console-header {
+  height: 52px;
+  min-height: 52px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: #1d2027;
+  border-bottom: 1px solid #343842;
+}
+
+.console-header svg {
+  color: #a78bfa;
+}
+
+.console-file {
+  margin-left: auto;
+  color: #777f90;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* ============================= */
+/* Console Editor                */
+/* ============================= */
+
+.console-editor {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.pattern-rows {
+  padding: 18px 12px;
+  min-width: 0;
+}
+
+.pattern-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: 6px;
+  transition: background-color 0.15s;
+}
+
+.pattern-row:hover {
+  background-color: #1d2027;
+}
+
+.pattern-row:focus-within {
+  background-color: #242734;
+}
+
+.pattern-row-error {
+  background-color: rgba(239, 68, 68, 0.06);
+}
+
+.pattern-row-error:focus-within {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.pattern-round {
+  flex-shrink: 0;
+  width: 54px;
+  color: #a78bfa;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 14px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.pattern-input-wrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.pattern-row input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #e2e8f0;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.9;
+  caret-color: #a78bfa;
+}
+
+.pattern-row input::placeholder {
+  color: #555d6b;
+}
+
+.pattern-row input::selection {
+  background-color: #51417e;
+}
+
+/* ============================= */
+/* Validation                    */
+/* ============================= */
+
+.pattern-validation-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  color: #22c55e;
+}
+
+.pattern-row-error .pattern-validation-icon {
+  color: #ef4444;
+}
+
+.pattern-error-message {
+  width: 100%;
+  margin-left: 54px;
+  padding-bottom: 8px;
+  color: #f87171;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ============================= */
+/* Console Footer                */
+/* ============================= */
+
+.console-footer {
+  height: 64px;
+  min-height: 64px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #1d2027;
+  border-top: 1px solid #343842;
+}
+
+.console-footer span {
+  font-size: 12px;
+  color: #777f90;
+}
+
+.console-save-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #8b5cf6;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.console-save-btn:hover {
+  background-color: #7c3aed;
+}
+
+/* ============================= */
+/* Save Modal                    */
+/* ============================= */
+
+.console-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+}
+
+.console-modal {
+  width: 100%;
+  max-width: 420px;
+  padding: 26px;
+  background-color: #242731;
+  border: 1px solid #414553;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.console-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.console-modal-header h3 {
+  margin: 0;
+  color: #f5f5f5;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.console-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #9299a8;
+  cursor: pointer;
+}
+
+.console-modal-close:hover {
+  background-color: #353946;
+  color: white;
+}
+
+.console-modal p {
+  margin: 12px 0 24px;
+  color: #9299a8;
+  font-size: 13px;
+}
+
+.console-modal label {
+  display: block;
+  margin-bottom: 9px;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.console-modal input {
+  width: 100%;
+  padding: 12px 14px;
+  background-color: #17191f;
+  color: #f5f5f5;
+  border: 1px solid #414553;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+}
+
+.console-modal input:focus {
+  border-color: #8b5cf6;
+}
+
+.console-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.console-cancel-btn,
+.console-confirm-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.console-cancel-btn {
+  background-color: #363a46;
+  color: #e5e7eb;
+}
+
+.console-cancel-btn:hover {
+  background-color: #414654;
+}
+
+.console-confirm-btn {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+.console-confirm-btn:hover {
+  background-color: #7c3aed;
+}
+
+/* ============================= */
+/* Responsive                    */
+/* ============================= */
+
+@media (max-width: 700px) {
+  .console-panel {
+    border-right: none;
+    border-bottom: 1px solid #343842;
+  }
+
+  .pattern-rows {
+    padding: 12px 6px;
+  }
+
+  .pattern-round {
+    width: 44px;
+    font-size: 13px;
+  }
+
+  .pattern-row input {
+    font-size: 13px;
+  }
+
+  .pattern-error-message {
+    margin-left: 44px;
+  }
+
+  .console-header,
+  .console-footer {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .console-modal {
+    padding: 20px;
+  }
+}
