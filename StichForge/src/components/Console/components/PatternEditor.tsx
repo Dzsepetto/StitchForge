@@ -1,15 +1,30 @@
 
-import { useLayoutEffect, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+import type {
+  ClipboardEvent,
+  KeyboardEvent,
+} from "react";
+
+import {
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 
 import type { PatternRow } from "../types/PatternRow";
+
 import {
   createRow,
   updateRow,
   removeRow,
 } from "../utils/roundNumbering";
-import { validatePatternRow } from "../utils/validator";
+
+import { validatePatternRows } from "../utils/semanticValidator";
 
 interface PatternEditorProps {
   rows: PatternRow[];
@@ -25,17 +40,24 @@ export default function PatternEditor({
   rows,
   onChange,
 }: PatternEditorProps) {
-  const inputRefs = useRef<Map<string, HTMLInputElement>>(
-    new Map()
-  );
+  const inputRefs = useRef<
+    Map<string, HTMLInputElement>
+  >(new Map());
 
   const [focusTarget, setFocusTarget] =
     useState<FocusTarget | null>(null);
 
+  const validations = useMemo(
+    () => validatePatternRows(rows),
+    [rows]
+  );
+
   useLayoutEffect(() => {
     if (!focusTarget) return;
 
-    const input = inputRefs.current.get(focusTarget.rowId);
+    const input = inputRefs.current.get(
+      focusTarget.rowId
+    );
 
     if (input) {
       input.focus();
@@ -55,14 +77,26 @@ export default function PatternEditor({
     event.preventDefault();
 
     const input = event.currentTarget;
-    const start = input.selectionStart ?? row.content.length;
-    const end = input.selectionEnd ?? start;
 
-    const beforeCursor = row.content.slice(0, start);
-    const afterCursor = row.content.slice(end);
+    const start =
+      input.selectionStart ?? row.content.length;
+
+    const end =
+      input.selectionEnd ?? start;
+
+    const beforeCursor =
+      row.content.slice(0, start);
+
+    const afterCursor =
+      row.content.slice(end);
 
     const newRow = createRow(afterCursor);
-    const index = rows.findIndex((item) => item.id === row.id);
+
+    const index = rows.findIndex(
+      (item) => item.id === row.id
+    );
+
+    if (index === -1) return;
 
     const updatedRows = [...rows];
 
@@ -94,7 +128,9 @@ export default function PatternEditor({
       return;
     }
 
-    const index = rows.findIndex((item) => item.id === row.id);
+    const index = rows.findIndex(
+      (item) => item.id === row.id
+    );
 
     if (index <= 0) return;
 
@@ -108,11 +144,85 @@ export default function PatternEditor({
       previousRow.content + row.content
     );
 
-    onChange(removeRow(updatedRows, row.id));
+    onChange(
+      removeRow(updatedRows, row.id)
+    );
 
     setFocusTarget({
       rowId: previousRow.id,
       position: previousRow.content.length,
+    });
+  };
+
+  const handlePaste = (
+    row: PatternRow,
+    event: ClipboardEvent<HTMLInputElement>
+  ) => {
+    const pastedText =
+      event.clipboardData.getData("text");
+
+    if (!/\r|\n/.test(pastedText)) return;
+
+    event.preventDefault();
+
+    const input = event.currentTarget;
+
+    const start =
+      input.selectionStart ?? row.content.length;
+
+    const end =
+      input.selectionEnd ?? start;
+
+    const beforeCursor =
+      row.content.slice(0, start);
+
+    const afterCursor =
+      row.content.slice(end);
+
+    const pastedLines =
+      pastedText.split(/\r\n|\n|\r/);
+
+    const index = rows.findIndex(
+      (item) => item.id === row.id
+    );
+
+    if (index === -1) return;
+
+    const updatedRows = [...rows];
+
+    updatedRows[index] = {
+      ...row,
+      content: beforeCursor + pastedLines[0],
+    };
+
+    const newRows = pastedLines
+      .slice(1)
+      .map((line, lineIndex) => {
+        const isLast =
+          lineIndex === pastedLines.length - 2;
+
+        return createRow(
+          isLast
+            ? line + afterCursor
+            : line
+        );
+      });
+
+    updatedRows.splice(
+      index + 1,
+      0,
+      ...newRows
+    );
+
+    onChange(updatedRows);
+
+    const lastRow =
+      newRows[newRows.length - 1];
+
+    setFocusTarget({
+      rowId: lastRow.id,
+      position:
+        pastedLines[pastedLines.length - 1].length,
     });
   };
 
@@ -133,13 +243,17 @@ export default function PatternEditor({
     <div className="console-editor">
       <div className="pattern-rows">
         {rows.map((row, index) => {
-          const validation = validatePatternRow(row.content);
+          const validation =
+            validations[row.id] ?? { valid: true };
+
           const isEmpty = !row.content.trim();
 
           return (
             <div
               className={`pattern-row ${
-                !validation.valid ? "pattern-row-error" : ""
+                !validation.valid
+                  ? "pattern-row-error"
+                  : ""
               }`}
               key={row.id}
             >
@@ -151,20 +265,32 @@ export default function PatternEditor({
                 <input
                   ref={(element) => {
                     if (element) {
-                      inputRefs.current.set(row.id, element);
+                      inputRefs.current.set(
+                        row.id,
+                        element
+                      );
                     } else {
-                      inputRefs.current.delete(row.id);
+                      inputRefs.current.delete(
+                        row.id
+                      );
                     }
                   }}
                   type="text"
                   value={row.content}
                   onChange={(event) =>
                     onChange(
-                      updateRow(rows, row.id, event.target.value)
+                      updateRow(
+                        rows,
+                        row.id,
+                        event.target.value
+                      )
                     )
                   }
                   onKeyDown={(event) =>
                     handleKeyDown(row, event)
+                  }
+                  onPaste={(event) =>
+                    handlePaste(row, event)
                   }
                   placeholder={
                     index === 0

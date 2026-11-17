@@ -1,29 +1,32 @@
 
 import { useState } from "react";
 import { Save, X, FileCode2 } from "lucide-react";
+
 import PatternEditor from "./components/PatternEditor";
 import type { PatternRow } from "./types/PatternRow";
-import {
-  createRow,
-  serializePattern,
-} from "./utils/roundNumbering";
+import { serializePattern } from "./utils/roundNumbering";
+
 import "./Console.css";
 
-export default function Console() {
-  const [rows, setRows] = useState<PatternRow[]>(() => [
-    createRow(),
-  ]);
+interface ConsoleProps {
+  rows: PatternRow[];
+  onChange: (rows: PatternRow[]) => void;
+}
 
+export default function Console({
+  rows,
+  onChange,
+}: ConsoleProps) {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [fileName, setFileName] = useState("untitled");
 
   const handleSave = () => {
     const name = fileName.trim() || "untitled";
-    const code = serializePattern(rows);
 
-    const blob = new Blob([code], {
-      type: "text/plain;charset=utf-8",
-    });
+    const blob = new Blob(
+      [serializePattern(rows)],
+      { type: "text/plain;charset=utf-8" }
+    );
 
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -52,12 +55,13 @@ export default function Console() {
 
       <PatternEditor
         rows={rows}
-        onChange={setRows}
+        onChange={onChange}
       />
 
       <div className="console-footer">
         <span>
-          {rows.length} {rows.length === 1 ? "round" : "rounds"}
+          {rows.length}{" "}
+          {rows.length === 1 ? "round" : "rounds"}
         </span>
 
         <button
@@ -79,10 +83,12 @@ export default function Console() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="save-pattern-title"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
           >
             <div className="console-modal-header">
-              <h3 id="save-pattern-title">Save Pattern</h3>
+              <h3 id="save-pattern-title">
+                Save Pattern
+              </h3>
 
               <button
                 className="console-modal-close"
@@ -93,7 +99,9 @@ export default function Console() {
               </button>
             </div>
 
-            <p>Choose a name for your crochet pattern.</p>
+            <p>
+              Choose a name for your crochet pattern.
+            </p>
 
             <label htmlFor="pattern-name">
               File name
@@ -103,9 +111,13 @@ export default function Console() {
               id="pattern-name"
               type="text"
               value={fileName}
-              onChange={(e) => setFileName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSave();
+              onChange={(event) =>
+                setFileName(event.target.value)
+              }
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  handleSave();
+                }
               }}
               autoFocus
             />
